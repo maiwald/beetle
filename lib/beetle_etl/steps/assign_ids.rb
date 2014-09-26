@@ -5,7 +5,7 @@ module BeetleETL
       [TableDiff.step_name(table_name)].to_set
     end
 
-    def run
+    def run_hook
       assign_new_ids
       map_existing_ids
     end
