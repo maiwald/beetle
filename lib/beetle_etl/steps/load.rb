@@ -7,7 +7,7 @@ module BeetleETL
       transition
     ]
 
-    def run
+    def run_hook
       %w(create update delete undelete).each do |transition|
         public_send(:"load_#{transition}")
       end

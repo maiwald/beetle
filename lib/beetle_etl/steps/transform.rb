@@ -13,7 +13,7 @@ module BeetleETL
       Set.new(@dependencies.map { |d| self.class.step_name(d) })
     end
 
-    def run
+    def run_hook
       database.run(query)
     end
 

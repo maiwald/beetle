@@ -12,7 +12,7 @@ module BeetleETL
       relations.values.map { |d| AssignIds.step_name(d) }.to_set << Transform.step_name(table_name)
     end
 
-    def run
+    def run_hook
       relations.each do |foreign_key_column, foreign_table_name|
         database.from(
           :"#{stage_schema}__#{table_name}___ST",

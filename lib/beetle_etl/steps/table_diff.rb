@@ -11,7 +11,7 @@ module BeetleETL
       [MapRelations.step_name(table_name)].to_set
     end
 
-    def run
+    def run_hook
       %w(create keep update delete undelete).each do |transition|
         public_send(:"transition_#{transition}")
       end
