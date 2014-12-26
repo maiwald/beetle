@@ -4,7 +4,7 @@ module BeetleETL
     extend self
 
     def run
-      TaskRunner.run(data_steps)
+      TaskRunner.new(data_steps).run
       BeetleETL.database.transaction do
         load_steps.each(&:run)
       end

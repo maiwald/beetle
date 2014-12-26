@@ -1,63 +1,56 @@
-require 'celluloid/autostart'
-
 module BeetleETL
   class TaskRunner
 
-    include Celluloid
+    def initialize(tasks)
+      @dependency_resolver = DependencyResolver.new(tasks)
+      @tasks = tasks
 
-    def initialize(runnables)
-      @runnables = runnables
+      @queue = Queue.new
       @completed = Set.new
       @running = Set.new
-      @dependency_resolver = DependencyResolver.new(runnables)
-
-      run_next
     end
 
-    def completed(runnable_name)
-      @running.delete(runnable_name)
-      @completed << runnable_name
-
-      run_next
-    end
-
-    def run_next
-      if all_run?
-        terminate
-      else
-        resolvables.each do |runnable|
-          unless @running.include?(runnable.name)
-            Task.new(Actor.current, runnable).async.run_task
-            @running << runnable.name
+    def run
+      Thread.new do
+        until all_run?
+          runnables.each do |task|
+            mark_running(task.name)
+            run_task_async(task)
           end
+
+          mark_completed(@queue.pop)
         end
-      end
+      end.join
     end
 
     private
+
+    def run_task_async(task)
+      Thread.new do
+        task.run
+        @queue.push task.name
+      end
+    end
+
+    def mark_completed(task_name)
+      @running.delete(task_name)
+      @completed << task_name
+    end
+
+    def mark_running(task_name)
+      @running << task_name
+    end
+
+    def runnables
+      resolvables.reject { |r| @running.include? r.name }
+    end
 
     def resolvables
       @dependency_resolver.resolvables(@completed)
     end
 
     def all_run?
-      @completed == @runnables.map(&:name).to_set
-    end
-
-    class Task
-
-      include Celluloid
-
-      def initialize(runner, task)
-        @runner = runner
-        @task = task
-      end
-
-      def run_task
-        @task.run
-        @runner.async.completed(@task.name)
-        terminate
-      end
+      @tasks.map(&:name).all? { |name| @completed.include? name }
     end
 
   end
