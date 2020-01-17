@@ -1,0 +1,11 @@
+version: '2.3'
+services:
+  app:
+    build: .
+    volumes:
+      - .:/home/mercury/app
+    links:
+      - db
+    command: tail -f /dev/null
+  db:
+    image: postgres:12.1
